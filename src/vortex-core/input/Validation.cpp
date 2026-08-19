@@ -1,10 +1,7 @@
 ﻿#include "Validation.h"
 
-#include <algorithm>
-#include <cstring>
-
-bool _path_size(const char *path) {
-    SIZE_DEFAULT valid = SIZE_DEFAULT::WIN;
+bool Validation::_path_size(char *path) {
+    auto valid = SIZE_DEFAULT::WIN;
 
     /*
     uint32_t count = 0;
@@ -13,10 +10,10 @@ bool _path_size(const char *path) {
 
     uint32_t path_length = strlen(path);
 
-    return path_length < valid;
+    return path_length < static_cast<uint32_t>(valid);
 }
 
-bool _normalize_path(char *path) {
+bool Validation::_normalize_path(char *path) {
 
     /*
     uint32_t count = 0;
@@ -51,12 +48,35 @@ bool _normalize_path(char *path) {
     return true;
 }
 
-bool _empty_diretory(const char *path) {
-    std::filesystem::directory_iterator iter(path), end;
+bool Validation::_empty_diretory(char *path) {
+    const std::filesystem::directory_iterator iter(path);
+    const std::filesystem::directory_iterator end;
     return iter == end;
 }
 
-bool _file_validate(const char *path) {
-    std::string ext_file = std::filesystem::path(path).extension().string();
+bool Validation::_file_validate(char *path) {
+    const std::string ext_file = std::filesystem::path(path).extension().string();
     return (ext_file == ".csv" || ext_file == ".json");
+}
+
+bool Validation::StateMachineValidation(char *path) {
+    /*Prototipo de la maquina de estados */
+
+    bool (*ptrStateMachineValidation[STATES])(char *path) = {
+        _path_size,
+        _empty_diretory,
+        _file_validate,
+        _normalize_path
+    };
+
+    for (size_t i = 0; i < STATES; i++) {
+        if (!ptrStateMachineValidation[i](path)) {
+            std::cout << "Error en el estado - " << i << "Informacion (" << path << ")"<< std::endl;
+            return false;
+        } else {
+            std::cout << "Estado de validation " << i << "Correcto" << std::endl;
+            continue;
+        }
+    }
+    return true;
 }
